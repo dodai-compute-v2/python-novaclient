@@ -1,4 +1,5 @@
 # Copyright 2013 Hewlett-Packard Development Company, L.P.
+# Copyright 2013 National Institute of Informatics.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -53,7 +54,10 @@ class BareMetalNodeManager(base.ManagerWithFind):
                pm_address=None,
                pm_user=None,
                pm_password=None,
-               terminal_port=None):
+               terminal_port=None,
+               host_name=None,
+               instance_type_id=None,
+               prov_ip_address=None):
         """
         Create a baremetal node.
 
@@ -66,6 +70,9 @@ class BareMetalNodeManager(base.ManagerWithFind):
         :param pm_password: Password for the node's power management
         :param prov_mac_address: MAC address to provision the node
         :param terminal_port: ShellInABox port
+        :param host_name: Host name for the node
+        :param instance_type_id: flavor ID for the node
+        :param prov_ip_address: IP address to provision the node
         :rtype: :class:`BareMetalNode`
         """
         body = {'node': {'service_host': service_host,
@@ -76,7 +83,10 @@ class BareMetalNodeManager(base.ManagerWithFind):
                         'pm_user': pm_user,
                         'pm_password': pm_password,
                         'prov_mac_address': prov_mac_address,
-                        'terminal_port': terminal_port}}
+                        'terminal_port': terminal_port,
+                        'host_name': host_name,
+                        'instance_type_id': instance_type_id,
+                        'prov_ip_address': prov_ip_address}}
 
         return self._create('/os-baremetal-nodes', body, 'node')
 
@@ -180,13 +190,27 @@ class BareMetalNodeManager(base.ManagerWithFind):
     metavar='<terminal_port>',
     type=int,
     help='ShellInABox port?')
+@utils.arg('--host_name', default=None,
+    metavar='<host_name>',
+    help='Host name for the node')
+@utils.arg('--instance_type_id', default=None,
+    metavar='<instance_type_id>',
+    type=int,
+    help='flavor ID for the node')
+@utils.arg('--prov_ip_address', default=None,
+    metavar='<prov_ip_address>',
+    help='IP address to provision the node')
 def do_baremetal_node_create(cs, args):
     """Create a baremetal node"""
     node = cs.baremetal.create(args.service_host, args.cpus,
             args.memory_mb, args.local_gb, args.prov_mac_address,
             pm_address=args.pm_address, pm_user=args.pm_user,
             pm_password=args.pm_password,
-            terminal_port=args.terminal_port)
+            terminal_port=args.terminal_port,
+            host_name=args.host_name,
+            instance_type_id=args.instance_type_id,
+            prov_ip_address=args.prov_ip_address,
+            )
     _print_baremetal_resource(node)
 
 
@@ -207,6 +231,9 @@ def _translate_baremetal_node_keys(collection):
                ('pm_user', 'pm_username'),
                ('pm_password', 'pm_password'),
                ('terminal_port', 'terminal_port'),
+               ('host_name', 'host_name'),
+               ('instance_type_id', 'instance_type_id'),
+               ('prov_ip_address', 'prov_ip_address'),
                ]
     for item in collection:
         keys = item.__dict__.keys()
@@ -229,6 +256,9 @@ def _print_baremetal_nodes_list(nodes):
         'PM Username',
         'PM Password',
         'Terminal Port',
+        'Host Name',
+        'Instance Type ID',
+        'Prov IP Address',
         ])
 
 
