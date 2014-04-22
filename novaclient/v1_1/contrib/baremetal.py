@@ -57,7 +57,10 @@ class BareMetalNodeManager(base.ManagerWithFind):
                terminal_port=None,
                host_name=None,
                instance_type_id=None,
-               prov_ip_address=None):
+               prov_ip_address=None,
+               ipmi_interface=None,
+               ipmitool_extra_option=None,
+               kernel_append_params=None):
         """
         Create a baremetal node.
 
@@ -73,6 +76,10 @@ class BareMetalNodeManager(base.ManagerWithFind):
         :param host_name: Host name for the node
         :param instance_type_id: flavor ID for the node
         :param prov_ip_address: IP address to provision the node
+        :param ipmi_interface: IPMI interface (ex: lan)
+                               If not specified, 'lanplus' is used by default.
+        :param ipmitool_extra_option: ipmitool extra option
+        :param kernel_append_params: Kernel appendant parameters
         :rtype: :class:`BareMetalNode`
         """
         body = {'node': {'service_host': service_host,
@@ -86,7 +93,10 @@ class BareMetalNodeManager(base.ManagerWithFind):
                         'terminal_port': terminal_port,
                         'host_name': host_name,
                         'instance_type_id': instance_type_id,
-                        'prov_ip_address': prov_ip_address}}
+                        'prov_ip_address': prov_ip_address,
+                        'ipmi_interface': ipmi_interface,
+                        'ipmitool_extra_option': ipmitool_extra_option,
+                        'kernel_append_params': kernel_append_params}}
 
         return self._create('/os-baremetal-nodes', body, 'node')
 
@@ -200,6 +210,16 @@ class BareMetalNodeManager(base.ManagerWithFind):
 @utils.arg('--prov_ip_address', default=None,
     metavar='<prov_ip_address>',
     help='IP address to provision the node')
+@utils.arg('--ipmi_interface', default=None,
+    metavar='<ipmi_interface>',
+    help='IPMI interface (ex: lan)'
+    ' If not specified, \'lanplus\' is used by default.')
+@utils.arg('--ipmitool_extra_option', default=None,
+    metavar='<ipmitool_extra_option>',
+    help='ipmitool extra option')
+@utils.arg('--kernel_append_params', default=None,
+    metavar='<kernel_append_params>',
+    help='Kernel appendant parameters')
 def do_baremetal_node_create(cs, args):
     """Create a baremetal node"""
     node = cs.baremetal.create(args.service_host, args.cpus,
@@ -210,6 +230,9 @@ def do_baremetal_node_create(cs, args):
             host_name=args.host_name,
             instance_type_id=args.instance_type_id,
             prov_ip_address=args.prov_ip_address,
+            ipmi_interface=args.ipmi_interface,
+            ipmitool_extra_option=args.ipmitool_extra_option,
+            kernel_append_params=args.kernel_append_params,
             )
     _print_baremetal_resource(node)
 
@@ -234,6 +257,9 @@ def _translate_baremetal_node_keys(collection):
                ('host_name', 'host_name'),
                ('instance_type_id', 'instance_type_id'),
                ('prov_ip_address', 'prov_ip_address'),
+               ('ipmi_interface', 'ipmi_interface'),
+               ('ipmitool_extra_option', 'ipmitool_extra_option'),
+               ('kernel_append_params', 'kernel_append_params'),
                ]
     for item in collection:
         keys = item.__dict__.keys()
