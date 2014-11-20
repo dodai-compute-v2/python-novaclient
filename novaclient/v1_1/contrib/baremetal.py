@@ -20,6 +20,7 @@ Baremetal interface (v2 extension).
 from novaclient import base
 from novaclient import utils
 
+import sys
 
 class BareMetalNode(base.Resource):
     """
@@ -240,9 +241,17 @@ def do_baremetal_node_create(cs, args):
 @utils.arg('node',
     metavar='<node>',
     help='ID of the node to delete.')
+@utils.arg('--force',
+    action="store_true",
+    default=False,
+    help='force delete baremetal machine.')
 def do_baremetal_node_delete(cs, args):
     """Remove a baremetal node and any associated interfaces"""
     node = _find_baremetal_node(cs, args.node)
+    if False == args.force:
+        if 'active' != node.task_state or not node.resource_pool:
+            sys.exit("cannot delete node %s: task_state(%s), resource_pool(%s)"
+                     % (node.id, node.task_state, node.resource_pool))
     cs.baremetal.delete(node)
 
 
@@ -260,6 +269,8 @@ def _translate_baremetal_node_keys(collection):
                ('ipmi_interface', 'ipmi_interface'),
                ('ipmitool_extra_option', 'ipmitool_extra_option'),
                ('kernel_append_params', 'kernel_append_params'),
+               ('task_state', 'task_state'),
+               ('resource_pool', 'resource_pool'),
                ]
     for item in collection:
         keys = item.__dict__.keys()
@@ -285,6 +296,8 @@ def _print_baremetal_nodes_list(nodes):
         'Host Name',
         'Instance Type ID',
         'Prov IP Address',
+        'Task State',
+        'Resource pool',
         ])
 
 
